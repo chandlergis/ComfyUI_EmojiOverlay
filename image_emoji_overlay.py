@@ -3,7 +3,7 @@ import torch
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.font_manager import FontProperties
-
+import io
 class ImageEmojiOverlay:
     def __init__(self, device="cpu"):
         self.device = device
