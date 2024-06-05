@@ -1,11 +1,13 @@
 from PIL import Image, ImageDraw, ImageFont
 import torch
 import numpy as np
+import emoji
+import io
 
 class ImageEmojiOverlay:
     def __init__(self, device="cpu"):
         self.device = device
-    _alignments = ["left", "right", "center"]
+        self._alignments = ["left", "right", "center"]
 
     @classmethod
     def INPUT_TYPES(cls):
@@ -44,15 +46,18 @@ class ImageEmojiOverlay:
         # Prepare to draw on image
         draw = ImageDraw.Draw(image)
 
+        # Render emoji to image
+        emoji_image = self.render_emoji(text, font_size)
+
         # Adjust x coordinate based on alignment
-        text_width, text_height = draw.textsize(text, font=loaded_font)
+        text_width, text_height = emoji_image.size
         if alignment == "center":
             x -= text_width // 2
         elif alignment == "right":
             x -= text_width
 
-        # Draw text on the image
-        draw.text((x, y), text, fill=color_rgb, font=loaded_font)
+        # Paste emoji image onto the target image
+        image.paste(emoji_image, (x, y), emoji_image)
 
         # Convert back to Tensor if needed
         image_tensor_out = torch.tensor(np.array(image).astype(np.float32) / 255.0)  # Convert back to CxHxW
@@ -60,6 +65,15 @@ class ImageEmojiOverlay:
 
         return (image_tensor_out,)
 
+    def render_emoji(self, text, font_size):
+        # Create an image with transparent background
+        emoji_image = Image.new("RGBA", (font_size, font_size), (255, 255, 255, 0))
+        draw = ImageDraw.Draw(emoji_image)
+
+        # Draw emoji on the image
+        draw.text((0, 0), text, font=ImageFont.truetype("arial.ttf", font_size), fill=(0, 0, 0, 255))
+
+        return emoji_image
 
 NODE_CLASS_MAPPINGS = {
     "ImageEmojiOverlay": ImageEmojiOverlay,
