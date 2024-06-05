@@ -3,6 +3,7 @@ import torch
 import numpy as np
 import cairosvg
 import io
+import re
 
 class ImageEmojiOverlay:
     def __init__(self, device="cpu"):
