@@ -2,7 +2,7 @@ from PIL import Image, ImageDraw, ImageFont
 import torch
 import numpy as np
 
-class ImageEmojiOverlay:  # 更新插件名称为ImageEmojiOverlay
+class ImageEmojiOverlay:
     def __init__(self, device="cpu"):
         self.device = device
     _alignments = ["left", "right", "center"]
@@ -12,11 +12,11 @@ class ImageEmojiOverlay:  # 更新插件名称为ImageEmojiOverlay
         return {
             "required": {
                 "image": ("IMAGE",),
-                "text": ("EMOJI", {"multiline": True, "default": "😊"}),  # Change type to EMOJI
+                "text": ("STRING", {"multiline": True, "default": "😊"}),  # Allow emoji characters in the input string
                 "font_size": ("INT", {"default": 16, "min": 1, "max": 256, "step": 1}),
                 "x": ("INT", {"default": 0}),
                 "y": ("INT", {"default": 0}),
-                "font": ("STRING", {"default": "/tmp/data/ComfyUI/fonts/NotoColorEmoji-Regular.ttf"}),  # Assuming it's a path to a .ttf or .otf file
+                "font": ("STRING", {"default": "arial.ttf"}),  # Assuming it's a path to a .ttf or .otf file
                 "alignment": (cls._alignments, {"default": "left"}),  # ["left", "right", "center"]
                 "color": ("INT", {"default": 0, "min": 0, "max": 0xFFFFFF, "step": 1, "display": "color"}),
             }
@@ -62,5 +62,5 @@ class ImageEmojiOverlay:  # 更新插件名称为ImageEmojiOverlay
 
 
 NODE_CLASS_MAPPINGS = {
-    "ImageEmojiOverlay": ImageEmojiOverlay,  # 更新插件名称为ImageEmojiOverlay
+    "ImageEmojiOverlay": ImageEmojiOverlay,
 }
