@@ -21,7 +21,6 @@ class ImageEmojiOverlay:
                 "y": ("INT", {"default": 0}),
                 "emoji_font": ("STRING", {"default": "/tmp/data/ComfyUI/fonts/NotoColorEmoji-Regular.ttf"}),   # Assuming it's a path to a .ttf or .otf file
                 "alignment": (cls._alignments, {"default": "left"}),  # ["left", "right", "center"]
-                "color": ("INT", {"default": 0, "min": 0, "max": 0xFFFFFF, "step": 1, "display": "color"}),
             }
         }
 
