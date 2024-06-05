@@ -14,7 +14,7 @@ class ImageEmojiOverlay:
         return {
             "required": {
                 "image": ("IMAGE",),
-                "text": ("STRING", {"multiline": True, "default": "Hello 😊"}),
+                "text": ("STRING", {"multiline": True, "default": "😊"}),
                 "font_size": ("INT", {"default": 16, "min": 1, "max": 256, "step": 1}),
                 "x": ("INT", {"default": 0}),
                 "y": ("INT", {"default": 0}),
@@ -43,15 +43,20 @@ class ImageEmojiOverlay:
         # Set the font properties for emoji
         prop = FontProperties(fname=emoji_font, size=font_size)
 
+        # Add text with emoji and get its bounding box
+        text_artist = ax.text(0, 0, text, fontproperties=prop, verticalalignment='top', horizontalalignment='left')
+        bbox = text_artist.get_window_extent().transformed(fig.dpi_scale_trans.inverted())
+        text_width = bbox.width
+        text_height = bbox.height
+
         # Adjust x coordinate based on alignment
-        text_width, text_height = ax.text(0, 0, text, fontproperties=prop).get_window_extent().transformed(fig.dpi_scale_trans.inverted()).width
         if alignment == "center":
             x = (image_pil.width - text_width) / 2
         elif alignment == "right":
             x = image_pil.width - text_width
 
-        # Add text with emoji
-        ax.text(x, y, text, fontproperties=prop, verticalalignment='top', horizontalalignment='left')
+        # Move the text artist to the correct position
+        text_artist.set_position((x, y))
 
         # Save to buffer
         buf = io.BytesIO()
@@ -64,7 +69,7 @@ class ImageEmojiOverlay:
         image_tensor_out = torch.tensor(np.array(img_out).astype(np.float32) / 255.0).permute(2, 0, 1)  # Convert back to CxHxW
         image_tensor_out = torch.unsqueeze(image_tensor_out, 0)
 
-        return (image_tensor,)
+        return (image_tensor_out,)
 
 NODE_CLASS_MAPPINGS = {
     "Image Emoji Overlay": ImageEmojiOverlay,
