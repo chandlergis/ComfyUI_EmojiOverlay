@@ -1,6 +1,8 @@
 from PIL import Image, ImageDraw, ImageFont
 import torch
 import numpy as np
+import cairosvg
+import io
 
 class ImageEmojiOverlay:
     def __init__(self, device="cpu"):
@@ -16,7 +18,7 @@ class ImageEmojiOverlay:
                 "font_size": ("INT", {"default": 16, "min": 1, "max": 256, "step": 1}),
                 "x": ("INT", {"default": 0}),
                 "y": ("INT", {"default": 0}),
-                "font": ("STRING", {"default": "/tmp/data/ComfyUI/fonts/NotoColorEmoji-Regular.ttf"}),  # Assuming it's a path to a .ttf or .otf file
+                "font": ("STRING", {"default": "arial.ttf"}),  # Assuming it's a path to a .ttf or .otf file
                 "alignment": (cls._alignments, {"default": "left"}),  # ["left", "right", "center"]
                 "color": ("INT", {"default": 0, "min": 0, "max": 0xFFFFFF, "step": 1, "display": "color"}),
             }
@@ -51,8 +53,25 @@ class ImageEmojiOverlay:
         elif alignment == "right":
             x -= text_width
 
-        # Draw text on the image
-        draw.text((x, y), text, fill=color_rgb, font=loaded_font, embedded_color=True)
+        # Split text into parts to handle emojis separately
+        parts = text.split(' ')
+        current_x = x
+
+        for part in parts:
+            if any(char in part for char in "😊😂❤️👍"):  # Add more emojis as needed
+                # Convert emoji to PNG using cairosvg
+                svg_data = f'<svg xmlns="http://www.w3.org/2000/svg" width="{font_size}" height="{font_size}"><text y="1em" font-family="{font}" font-size="{font_size}px">{part}</text></svg>'
+                png_data = cairosvg.svg2png(bytestring=svg_data)
+                emoji_image = Image.open(io.BytesIO(png_data))
+
+                # Paste emoji onto the image
+                image.paste(emoji_image, (current_x, y), emoji_image)
+                current_x += emoji_image.width
+            else:
+                # Draw text part
+                draw.text((current_x, y), part, fill=color_rgb, font=loaded_font)
+                text_width, text_height = draw.textsize(part, font=loaded_font)
+                current_x += text_width
 
         # Convert back to Tensor if needed
         image_tensor_out = torch.tensor(np.array(image).astype(np.float32) / 255.0)  # Convert back to CxHxW
