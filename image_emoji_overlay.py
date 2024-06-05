@@ -18,7 +18,8 @@ class ImageEmojiOverlay:
                 "font_size": ("INT", {"default": 16, "min": 1, "max": 256, "step": 1}),
                 "x": ("INT", {"default": 0}),
                 "y": ("INT", {"default": 0}),
-                "font": ("STRING", {"default": "arial.ttf"}),  # Assuming it's a path to a .ttf or .otf file
+                "font": ("STRING", {"default": "/tmp/data/ComfyUI/fonts/Feibo.otf"}),
+                "emoji_font": ("STRING", {"default": "/tmp/data/ComfyUI/fonts/NotoColorEmoji-Regular.ttf"}),   # Assuming it's a path to a .ttf or .otf file
                 "alignment": (cls._alignments, {"default": "left"}),  # ["left", "right", "center"]
                 "color": ("INT", {"default": 0, "min": 0, "max": 0xFFFFFF, "step": 1, "display": "color"}),
             }
@@ -65,7 +66,7 @@ class ImageEmojiOverlay:
             "\U0001F680-\U0001F6FF"  # transport & map symbols
             "\U0001F1E0-\U0001F1FF"  # flags (iOS)
             "\U00002702-\U000027B0"  # Dingbats
-            "\U000024C2-\U0001F251" 
+            "\U000024C2-\U0001F251"
             "]+", flags=re.UNICODE)
 
         # Split text into parts to handle emojis separately
