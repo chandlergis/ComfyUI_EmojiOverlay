@@ -1,19 +1,18 @@
 from PIL import Image, ImageDraw, ImageFont
 import torch
 import numpy as np
-import emoji
 
 class ImageEmojiOverlay:
     def __init__(self, device="cpu"):
         self.device = device
-        self._alignments = ["left", "right", "center"]
+    _alignments = ["left", "right", "center"]
 
     @classmethod
     def INPUT_TYPES(cls):
         return {
             "required": {
                 "image": ("IMAGE",),
-                "text": ("STRING", {"multiline": True, "default": "😊"}),  # Allow emoji characters in the input string
+                "text": ("STRING", {"multiline": True, "default": "Hello 😊"}),
                 "font_size": ("INT", {"default": 16, "min": 1, "max": 256, "step": 1}),
                 "x": ("INT", {"default": 0}),
                 "y": ("INT", {"default": 0}),
@@ -52,15 +51,16 @@ class ImageEmojiOverlay:
         elif alignment == "right":
             x -= text_width
 
-        # Draw text on the image, including emoji
-        draw.text((x, y), text, fill=color_rgb, font=loaded_font)
+        # Draw text on the image
+        draw.text((x, y), text, fill=color_rgb, font=loaded_font, embedded_color=True)
 
         # Convert back to Tensor if needed
-        image_tensor_out = torch.tensor(np.array(image).astype(np.float32) / 255.0).permute(2, 0, 1)  # Convert back to CxHxW
+        image_tensor_out = torch.tensor(np.array(image).astype(np.float32) / 255.0)  # Convert back to CxHxW
         image_tensor_out = torch.unsqueeze(image_tensor_out, 0)
 
         return (image_tensor_out,)
 
+
 NODE_CLASS_MAPPINGS = {
-    "ImageEmojiOverlay": ImageEmojiOverlay,
+    "Image Emoji Overlay": ImageEmojiOverlay,
 }
