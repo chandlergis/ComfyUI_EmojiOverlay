@@ -28,7 +28,11 @@ class ImageEmojiOverlay:
     FUNCTION = "draw_text_on_image"
     CATEGORY = "image/text"
 
-    def draw_text_on_image(self, image, text, font_size, x, y, font, alignment, color):
+    RETURN_TYPES = ("IMAGE",)
+    FUNCTION = "draw_text_on_image"
+    CATEGORY = "image/text"
+
+    def draw_text_on_image(self, image, text, font_size, x, y, font, emoji_font, alignment, color):
         # Convert tensor to numpy array and then to PIL Image
         image_tensor = image
         image_np = image_tensor.cpu().numpy()  # Change from CxHxW to HxWxC for Pillow
@@ -40,8 +44,9 @@ class ImageEmojiOverlay:
         b = color & 0xFF
         color_rgb = (r, g, b)
 
-        # Load font
+        # Load fonts
         loaded_font = ImageFont.truetype(font, font_size)
+        emoji_loaded_font = ImageFont.truetype(emoji_font, font_size)
 
         # Prepare to draw on image
         draw = ImageDraw.Draw(image)
@@ -53,25 +58,41 @@ class ImageEmojiOverlay:
         elif alignment == "right":
             x -= text_width
 
+        # Regular expression to find emoji
+        emoji_pattern = re.compile(
+            "[\U0001F600-\U0001F64F"  # emoticons
+            "\U0001F300-\U0001F5FF"  # symbols & pictographs
+            "\U0001F680-\U0001F6FF"  # transport & map symbols
+            "\U0001F1E0-\U0001F1FF"  # flags (iOS)
+            "\U00002702-\U000027B0"  # Dingbats
+            "\U000024C2-\U0001F251" 
+            "]+", flags=re.UNICODE)
+
         # Split text into parts to handle emojis separately
-        parts = text.split(' ')
+        parts = emoji_pattern.split(text)
+        emojis = emoji_pattern.findall(text)
+
         current_x = x
-
-        for part in parts:
-            if any(char in part for char in "😊😂❤️👍"):  # Add more emojis as needed
-                # Convert emoji to PNG using cairosvg
-                svg_data = f'<svg xmlns="http://www.w3.org/2000/svg" width="{font_size}" height="{font_size}"><text y="1em" font-family="{font}" font-size="{font_size}px">{part}</text></svg>'
-                png_data = cairosvg.svg2png(bytestring=svg_data)
-                emoji_image = Image.open(io.BytesIO(png_data))
-
-                # Paste emoji onto the image
-                image.paste(emoji_image, (current_x, y), emoji_image)
-                current_x += emoji_image.width
-            else:
-                # Draw text part
+        for part, emoji in zip(parts, emojis + [""]):
+            # Draw text part
+            if part:
                 draw.text((current_x, y), part, fill=color_rgb, font=loaded_font)
-                text_width, text_height = draw.textsize(part, font=loaded_font)
+                text_width, _ = draw.textsize(part, font=loaded_font)
                 current_x += text_width
+
+            # Draw emoji part
+            if emoji:
+                draw.text((current_x, y), emoji, font=emoji_loaded_font)
+                emoji_width, _ = draw.textsize(emoji, font=emoji_loaded_font)
+                current_x += emoji_width
+
+        # If the text only contains emojis
+        if not parts[0] and emojis:
+            current_x = x
+            for emoji in emojis:
+                draw.text((current_x, y), emoji, font=emoji_loaded_font)
+                emoji_width, _ = draw.textsize(emoji, font=emoji_loaded_font)
+                current_x += emoji_width
 
         # Convert back to Tensor if needed
         image_tensor_out = torch.tensor(np.array(image).astype(np.float32) / 255.0)  # Convert back to CxHxW
