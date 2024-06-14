@@ -1,0 +1,14 @@
+[project]
+name = "comfyui_emojioverlay"
+description = "Nodes:Image Emoji Overlay"
+version = "1.0.0"
+license = "LICENSE"
+
+[project.urls]
+Repository = "https://github.com/chandlergis/ComfyUI_EmojiOverlay"
+#  Used by Comfy Registry https://comfyregistry.org
+
+[tool.comfy]
+PublisherId = ""
+DisplayName = "ComfyUI_EmojiOverlay"
+Icon = ""
